@@ -1,0 +1,29 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="Theme.ProyectoServicioSocial22B" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/Green</item>
+        <item name="colorPrimaryVariant">@color/Green</item>
+        <item name="colorOnPrimary">@color/Green</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/Green</item>
+        <item name="colorSecondaryVariant">@color/Green</item>
+        <item name="colorOnSecondary">@color/Green</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor" >?attr/colorPrimaryVariant</item>
+        <!-- Customize your theme here. -->
+    </style>
+    <style name="Theme.Detector" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/white</item>
+        <item name="colorPrimaryVariant">@color/white</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/Green</item>
+        <item name="colorSecondaryVariant">@color/Green</item>
+        <item name="colorOnSecondary">@color/Green</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor" >?attr/colorPrimaryVariant</item>
+        <!-- Customize your theme here. -->
+    </style>
+</resources>
