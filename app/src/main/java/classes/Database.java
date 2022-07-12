@@ -21,6 +21,8 @@ public class Database {
     private final LocalFile localFile;
     private final Message message;
     private Medidor medidor;
+    private List<Medidor> medidores;
+
     public Database(DatabaseReference mDatabase, LocalFile localFile, Message message){
         this.mDatabase = mDatabase;
         this.localFile = localFile;
@@ -33,6 +35,9 @@ public class Database {
     public void setMedidor(Medidor medidor) {
         this.medidor = medidor;
     }
+    public List<Medidor> getMedidores() { return medidores; }
+    public void setMedidores(List<Medidor> medidores) { this.medidores = medidores; }
+
     public void GetMedidorDataBase(){
         mDatabase.child("Medidor").child("MedidorDePrueba").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
@@ -57,6 +62,7 @@ public class Database {
             }
         });
     }
+
     private void CargarModeloReloj(String nombreModelo){
         CustomModelDownloadConditions conditions = new CustomModelDownloadConditions.Builder()
                 .requireWifi()  // Also possible: .requireCharging() and .requireDeviceIdle()
@@ -74,6 +80,7 @@ public class Database {
                     }
                 });
     }
+
     private void CargarModeloContraReloj(String nombreModelo){
         CustomModelDownloadConditions conditions = new CustomModelDownloadConditions.Builder()
                 .requireWifi()  // Also possible: .requireCharging() and .requireDeviceIdle()

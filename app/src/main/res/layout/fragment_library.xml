@@ -14,4 +14,20 @@
         android:theme="?attr/actionBarTheme"
         app:title="Medidores"
         app:titleCentered="true" />
+
+    <EditText
+        android:id="@+id/txtOutput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:gravity="start|top"
+        android:inputType="textMultiLine" />
+
+    <Button
+        android:id="@+id/btnAction"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/gray"
+        android:text="Action" />
+
 </LinearLayout>
