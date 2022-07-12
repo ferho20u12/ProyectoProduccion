@@ -1,56 +1,54 @@
 package com.example.proyectoserviciosocial22b;
 
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.media.ThumbnailUtils;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
+
 import android.widget.ViewFlipper;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-
-import com.example.proyectoserviciosocial22b.ml.Model;
-import com.example.proyectoserviciosocial22b.ml.Model2;
-
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
-import org.tensorflow.lite.DataType;
-import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
+import org.tensorflow.lite.Interpreter;
 
-import java.io.IOException;
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
+//clases propias
+
+import classes.*;
+
+
 
 public class ImageClassActivity extends AppCompatActivity {
     private List<Mat>mats;
     private List<Bitmap>bitmaps;
-    private List<String>identificadores;
-    private int cont;
+    private List<Double> outputs;
+    private Medidor medidor;
+    private int indexFlipper;
     private TextView textView;
     private ViewFlipper imageFlipper;
-    private Toast toast;
+    private Message message;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_class);
         imageFlipper = findViewById( R.id.image_flipper );
         textView = findViewById( R.id.textView);
-        bitmaps = new ArrayList<>();
-        mats = new ArrayList<>();
-        cont=0;
-        toast = Toast.makeText(this, "", Toast.LENGTH_SHORT);
-        identificadores = new ArrayList<>();
+        InicializacionVariables();
         if(!OpenCVLoader.initDebug()) {
-            ShowNewMessage("Algo salio mal al cargar Open CV");
+            message.ShowNewMessage("Algo salio mal al cargar Open CV");
         }else{
             Obtencion_Imagenes();
             CargarSlider();
@@ -63,6 +61,19 @@ public class ImageClassActivity extends AppCompatActivity {
         super.onDestroy();
         LimpiarVariables();
     }
+    //------------------------------------------------nuevas funciones
+
+    private void InicializacionVariables(){
+        bitmaps = new ArrayList<>();
+        mats = new ArrayList<>();
+        indexFlipper =0;
+        message = new Message(this);
+        outputs = new ArrayList<>();
+        medidor = (Medidor) getIntent().getSerializableExtra("Medidor");
+    }
+
+    //-----------------------------------------------------------------
+
 
     @Override
     protected void onResume() {
@@ -82,131 +93,30 @@ public class ImageClassActivity extends AppCompatActivity {
         Bundle parametros = this.getIntent().getExtras();
         if(parametros !=null) {
             mats.add(new Mat(parametros.getLong("image_outputCrop")));
-            int contCirculos = parametros.getInt("cantCirculos");
-            for (int i = contCirculos - 1; i >= 0; i--) {
+            for (int i = medidor.getCantCirculos() - 1; i >= 0; i--) {
                 mats.add(new Mat(parametros.getLong("image_output" + i)));
             }
             if (mats.get(0) != null) {
                 for (Mat mat : mats) {
                     bitmaps.add(Mat_to_Bitmap(mat));
                 }
-            } else {
-                ShowNewMessage("Error no existe imagen de origen");
             }
         }
-        else
-            ShowNewMessage("Error al cargar Bunble");
     }
+    @SuppressLint("SetTextI18n")
     private void IdentificarNumeros(){
         textView.setText("");
         for(int i=1;i<bitmaps.size();i++){
-            if(i%2==0){
-                classifyImage2(bitmaps.get(i));
-            }
-            else{
-                classifyImage(bitmaps.get(i));
-            }
+            if(EsImpar(i))
+                Interprete(bitmaps.get(i),medidor.getModelFileContraReloj());
+            else
+                Interprete(bitmaps.get(i),medidor.getModelFileReloj());
         }
-        StringBuilder str = new StringBuilder();
-        for(int i = identificadores.size()-1;i>=0;i--){
-            str.append(identificadores.get(i));
-        }
-        str.append(" Kw");
-        textView.setText(str.toString());
+
+        textView.setText(""+ outputs);
     }
-    private void classifyImage(Bitmap image)
-    {
-        try {
-            int imageSize = 224;
-            int dimension = Math.min(image.getWidth(), image.getHeight());
-            image = ThumbnailUtils.extractThumbnail(image, dimension, dimension);
-            image = Bitmap.createScaledBitmap(image, imageSize, imageSize,false);
-            Model model = Model.newInstance(getApplicationContext());
-            TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 224, 224, 3}, DataType.FLOAT32);
-            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(4 * imageSize * imageSize * 3);
-            byteBuffer.order(ByteOrder.nativeOrder());
-            int[] intValues = new int[imageSize * imageSize];
-            image.getPixels(intValues, 0, image.getWidth(), 0, 0, image.getWidth(), image.getHeight());
-            int pixel = 0;
-            for (int i = 0; i < imageSize; ++i)
-            {
-                for (int j = 0; j < imageSize; ++j) {
-                    int val = intValues[pixel++]; //RGB
-                    byteBuffer.putFloat(((val >> 16) & 0xFF) * 1.f);
-                    byteBuffer.putFloat(((val >> 8) & 0xFF) * 1.f);
-                    byteBuffer.putFloat((val & 0xFF) * 1.f);
-                }
-            }
-            ArrayList<String>classes = new ArrayList<>();
-            for(int i=0;i<10;i++){
-                classes.add(""+i);
-            }
-            inputFeature0.loadBuffer(byteBuffer);
-            Model.Outputs outputs = model.process(inputFeature0);
-            TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
-            float [] confidences = outputFeature0.getFloatArray();
-            int maxPos = 0;
-            float maxConfidence = 0;
-            for (int i = 0 ; i < confidences.length ; ++i)
-            {
-                if (confidences[i] > maxConfidence)
-                {
-                    maxConfidence = confidences[i];
-                    maxPos = i;
-                }
-            }
-            identificadores.add(classes.get(maxPos));
-            model.close();
-        } catch (IOException e) {
-            ShowNewMessage("No jala");
-        }
-    }
-    private void classifyImage2(Bitmap image)
-    {
-        try {
-            int imageSize = 224;
-            int dimension = Math.min(image.getWidth(), image.getHeight());
-            image = ThumbnailUtils.extractThumbnail(image, dimension, dimension);
-            image = Bitmap.createScaledBitmap(image, imageSize, imageSize,false);
-            Model2 model = Model2.newInstance(getApplicationContext());
-            TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 224, 224, 3}, DataType.FLOAT32);
-            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(4 * imageSize * imageSize * 3);
-            byteBuffer.order(ByteOrder.nativeOrder());
-            int[] intValues = new int[imageSize * imageSize];
-            image.getPixels(intValues, 0, image.getWidth(), 0, 0, image.getWidth(), image.getHeight());
-            int pixel = 0;
-            for (int i = 0; i < imageSize; ++i)
-            {
-                for (int j = 0; j < imageSize; ++j) {
-                    int val = intValues[pixel++]; //RGB
-                    byteBuffer.putFloat(((val >> 16) & 0xFF) * 1.f);
-                    byteBuffer.putFloat(((val >> 8) & 0xFF) * 1.f);
-                    byteBuffer.putFloat((val & 0xFF) * 1.f);
-                }
-            }
-            ArrayList<String>classes = new ArrayList<>();
-            for(int i=0;i<10;i++){
-                classes.add(""+i);
-            }
-            inputFeature0.loadBuffer(byteBuffer);
-            Model2.Outputs outputs = model.process(inputFeature0);
-            TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
-            float [] confidences = outputFeature0.getFloatArray();
-            int maxPos = 0;
-            float maxConfidence = 0;
-            for (int i = 0 ; i < confidences.length ; ++i)
-            {
-                if (confidences[i] > maxConfidence)
-                {
-                    maxConfidence = confidences[i];
-                    maxPos = i;
-                }
-            }
-            identificadores.add(classes.get(maxPos));
-            model.close();
-        } catch (IOException e) {
-            ShowNewMessage("No Jala x2");
-        }
+    private boolean EsImpar(int num){
+        return num % 2 == 0;
     }
 
     //---------------------------Slider
@@ -218,11 +128,11 @@ public class ImageClassActivity extends AppCompatActivity {
         }
     }
     public void CargarSiguiente(View view){
-        if(cont<identificadores.size()){
+        if(indexFlipper < outputs.size()){
             imageFlipper.showNext();
-            cont++;
-            if(cont != 0){
-                ShowNewMessage("Se leyo "+identificadores.get(cont-1));
+            indexFlipper++;
+            if(indexFlipper != 0){
+                message.ShowNewMessage("Se leyo "+ outputs.get(indexFlipper -1));
             }
 
         }
@@ -238,18 +148,12 @@ public class ImageClassActivity extends AppCompatActivity {
         }
         return super.onKeyDown(keyCode, event);
     }
-    private void ShowNewMessage(String str){
-        toast.cancel();
-        toast = Toast.makeText(this,str,Toast.LENGTH_SHORT);
-        toast.show();
-    }
     public void CargarPrevio(View view){
-        if(cont>0){
-            cont--;
+        if(indexFlipper >0){
+            indexFlipper--;
             imageFlipper.showPrevious();
         }
     }
-
     //---------------------------Limpiar Variables
     private void LimpiarVariables(){
         for (Mat mat:mats)
@@ -258,6 +162,41 @@ public class ImageClassActivity extends AppCompatActivity {
         }
         mats.clear();
         bitmaps.clear();
-        identificadores.clear();
+        outputs.clear();
+    }
+    private void Interprete(Bitmap inputImage, File modelFile){
+        if(modelFile == null){
+            message.ShowNewMessage("Error archivo");
+            return;
+        }
+        try (Interpreter interpreter = new Interpreter(modelFile)) {
+            Bitmap bitmap = Bitmap.createScaledBitmap(inputImage, 224, 224, false);
+            ByteBuffer input = ByteBuffer.allocateDirect(224 * 224 * 3 * 4).order(ByteOrder.nativeOrder());
+            for (int y = 0; y < 224; y++) {
+                for (int x = 0; x < 224; x++) {
+                    int px = bitmap.getPixel(x, y);
+
+                    input.putFloat(((px >> 16) & 0xFF) * 1.f);
+                    input.putFloat(((px >> 8) & 0xFF) * 1.f);
+                    input.putFloat((px & 0xFF) * 1.f);
+
+                }
+            }
+            int bufferSize = 10 * java.lang.Float.SIZE / java.lang.Byte.SIZE;
+            ByteBuffer modelOutput = ByteBuffer.allocateDirect(bufferSize).order(ByteOrder.nativeOrder());
+            interpreter.run(input, modelOutput);
+            modelOutput.rewind();
+            FloatBuffer probabilities = modelOutput.asFloatBuffer();
+            int mayor = 0;
+            float probabilidadMayor= 0;
+            for (int i = 0; i < probabilities.capacity(); i++) {
+                if(probabilidadMayor < probabilities.get(i))
+                {
+                    mayor=i;
+                    probabilidadMayor = probabilities.get(i);
+                }
+            }
+            outputs.add(medidor.getClasses().get(mayor));
+        }
     }
 }
