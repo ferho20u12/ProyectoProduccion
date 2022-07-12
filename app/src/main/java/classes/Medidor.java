@@ -1,37 +1,51 @@
 package classes;
 
+import java.io.File;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Medidor {
+public class Medidor implements Serializable {
     private int cantCirculos;
     private List<Double> classes;
     private String nombre;
-    private String urlModelReloj;
-    private String urlModelContraReloj;
 
-    public Medidor(){
-        cantCirculos=0;
-        classes = new ArrayList<>();
-        nombre = "";
-        urlModelReloj ="";
-        urlModelContraReloj ="";
+    private String nombreModelReloj;
+    private String nombreModelContraReloj;
+    private File modelFileReloj;
+    private File modelFileContraReloj;
+
+    public Medidor(){classes = new ArrayList<>();}
+
+    public File getModelFileReloj() {
+        return modelFileReloj;
     }
 
-    public String getUrlModelReloj() {
-        return urlModelReloj;
+    public void setModelFileReloj(File modelFileReloj) {
+        this.modelFileReloj = modelFileReloj;
     }
 
-    public void setUrlModelReloj(String urlModelReloj) {
-        this.urlModelReloj = urlModelReloj;
+    public File getModelFileContraReloj() {
+        return modelFileContraReloj;
     }
 
-    public String getUrlModelContraReloj() {
-        return urlModelContraReloj;
+    public void setModelFileContraReloj(File modelFileContraReloj) {
+        this.modelFileContraReloj = modelFileContraReloj;
+    }
+    public String getNombreModelReloj() {
+        return nombreModelReloj;
     }
 
-    public void setUrlModelContraReloj(String urlModelContraReloj) {
-        this.urlModelContraReloj = urlModelContraReloj;
+    public void setNombreModelReloj(String nombreModelReloj) {
+        this.nombreModelReloj = nombreModelReloj;
+    }
+
+    public String getNombreModelContraReloj() {
+        return nombreModelContraReloj;
+    }
+
+    public void setNombreModelContraReloj(String nombreModelContraReloj) {
+        this.nombreModelContraReloj = nombreModelContraReloj;
     }
     public int getCantCirculos() {
         return cantCirculos;

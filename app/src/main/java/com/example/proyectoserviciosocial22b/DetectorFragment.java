@@ -15,8 +15,8 @@ import org.imaginativeworld.whynotimagecarousel.model.CarouselItem;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import classes.Message;
+//propias
+import classes.*;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -32,7 +32,7 @@ public class DetectorFragment extends Fragment {
     private ImageCarousel carousel;
     private List<CarouselItem> list;
     private List<Integer>cantCirculos;
-    private Message toast;
+    private Message message;
     private Context context;
 
     public DetectorFragment() {
@@ -72,7 +72,7 @@ public class DetectorFragment extends Fragment {
         Button button = (Button) view.findViewById(R.id.button);
 
         //------------------------------------------------------
-        toast = new Message(context);
+        message = new Message(context);
         carousel.registerLifecycle(getLifecycle());
         list = new ArrayList<>();
         cantCirculos = new ArrayList<>();
@@ -84,7 +84,7 @@ public class DetectorFragment extends Fragment {
             @Override
             public void onClick(View v)
             {
-                Intent intent = new Intent(context, CamaraOpencvActivity.class);
+                Intent intent = new Intent(context, CameraOpencvActivity.class);
                 intent.putExtra("cantCirculos", cantCirculos.get(carousel.getCurrentPosition()));
                 startActivity(intent);
             }

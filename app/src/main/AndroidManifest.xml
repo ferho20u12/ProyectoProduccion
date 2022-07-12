@@ -17,7 +17,7 @@
             android:name=".ImageClassActivity"
             android:exported="false" />
         <activity
-            android:name=".CamaraOpencvActivity"
+            android:name=".CameraOpencvActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"

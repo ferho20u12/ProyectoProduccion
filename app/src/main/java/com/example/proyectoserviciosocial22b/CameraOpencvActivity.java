@@ -26,14 +26,14 @@ import org.opencv.imgproc.Imgproc;
 import java.util.ArrayList;
 import java.util.List;
 
-import classes.*;
+import classes.Circle;
 
 
-public class CamaraOpencvActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2{
+public class CameraOpencvActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2{
     private Intent intent;
     private Mat mRgba,mRgba2,mGray;
     private  int heightScreen,widthScreen,side,cantCirculos;
-    private List<Circulo> circulos;
+    private List<Circle> circulos;
     private Toast toast;
     CameraBridgeViewBase cameraBridgeViewBase;
     BaseLoaderCallback baseLoaderCallback;
@@ -44,7 +44,7 @@ public class CamaraOpencvActivity extends AppCompatActivity implements CameraBri
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camara_opencv);
-        intent = new Intent(CamaraOpencvActivity.this, ImageClassActivity.class);
+        intent = new Intent(CameraOpencvActivity.this, ImageClassActivity.class);
         cameraBridgeViewBase = findViewById(R.id.CameraView);
         cameraBridgeViewBase.setVisibility(View.VISIBLE);
         cameraBridgeViewBase.setCvCameraViewListener(this);
@@ -162,13 +162,13 @@ public class CamaraOpencvActivity extends AppCompatActivity implements CameraBri
                 Point center = new Point((int) circleVec[0], (int) circleVec[1]);
                 int radius = (int) circleVec[2];
                 //Imgproc.circle(input, center, radius, new Scalar(255, 255, 255), 2);
-                Circulo circulo = new Circulo(center,radius);
+                Circle circulo = new Circle(center,radius);
                 circulos.add(circulo);
             }
         }
     }
     private void BurbujaMejorada(){
-        Circulo AUX;
+        Circle AUX;
         int j;
         int bandera=1;
         for(int i = 0;i<(circulos.size()-1)&&bandera==1;i++)
@@ -179,7 +179,7 @@ public class CamaraOpencvActivity extends AppCompatActivity implements CameraBri
                 if(circulos.get(j).getCenter().x>circulos.get(j+1).getCenter().x)
                 {
                     bandera=1;
-                    AUX= new Circulo(circulos.get(j).getCenter(),circulos.get(j).getRadius());
+                    AUX= new Circle(circulos.get(j).getCenter(),circulos.get(j).getRadius());
                     circulos.set(j,circulos.get(j+1));
                     circulos.set(j+1,AUX);
                 }
@@ -194,7 +194,7 @@ public class CamaraOpencvActivity extends AppCompatActivity implements CameraBri
         if(circulos.size() == cantCirculos ){
             BurbujaMejorada();
             List<Mat>mats =new ArrayList<>();
-            for(Circulo circulo:circulos){
+            for(Circle circulo:circulos){
                 double x,y;
                 int radius;
                 radius = circulo.getRadius();
