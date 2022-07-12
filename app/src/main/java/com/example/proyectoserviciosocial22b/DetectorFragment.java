@@ -27,6 +27,7 @@ import classes.Message;
 public class DetectorFragment extends Fragment {
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    int indexFlapper;
     private Context context;
 
     public DetectorFragment() {
@@ -66,24 +67,24 @@ public class DetectorFragment extends Fragment {
         ImageView btnPrevius = (ImageView) view.findViewById(R.id.btn_previous);
 
         Message message = new Message(context);
-        int indexFlapper = 0;
+        indexFlapper = 0;
         LocalFile localFile = new LocalFile(Environment.getExternalStorageDirectory(),"/");
         List<Medidor>medidores = localFile.loadMedidores();
 
-        
+
 
         button.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
-                if(medidores == null)
+                if(medidores != null)
                 {
-                    message.ShowNewMessage("No se a descargado ningun medidor");
-                }else {
                     Intent intent = new Intent(context, CameraOpencvActivity.class);
                     intent.putExtra("Medidor",medidores.get(indexFlapper));
                     startActivity(intent);
+                }else {
+                    message.ShowNewMessage("No se a descargado ningun medidor");
                 }
             }
         });
@@ -92,9 +93,13 @@ public class DetectorFragment extends Fragment {
             public void onClick(View v) {
                 if(medidores != null)
                 {
-                    message.ShowNewMessage("lista con datos");
+                    if(indexFlapper<medidores.size()) {
+                        indexFlapper++;
+                        message.ShowNewMessage("Medidor : "+medidores.get(indexFlapper).getNombre());
+                    }
+                }else{
+                    message.ShowNewMessage("Descague un modelo");
                 }
-                message.ShowNewMessage("next");
             }
         });
         btnPrevius.setOnClickListener(new View.OnClickListener() {
@@ -102,9 +107,13 @@ public class DetectorFragment extends Fragment {
             public void onClick(View v) {
                 if(medidores != null)
                 {
-                    message.ShowNewMessage("lista con datos");
+                    if(indexFlapper>0) {
+                        indexFlapper--;
+                        message.ShowNewMessage("Medidor : "+medidores.get(indexFlapper).getNombre());
+                    }
+                }else{
+                    message.ShowNewMessage("Descargue un modelo");
                 }
-                message.ShowNewMessage("Previous");
             }
         });
         return view;

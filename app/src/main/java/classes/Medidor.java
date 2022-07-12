@@ -9,7 +9,6 @@ public class Medidor implements Serializable {
     private int cantCirculos;
     private List<Double> classes;
     private String nombre;
-
     private String nombreModelReloj;
     private String nombreModelContraReloj;
     private File modelFileReloj;
