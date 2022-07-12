@@ -4,6 +4,8 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Documents/Android Studio/ProyectoProduccion/app/src/main/res/drawable/ic_launcher_icon_personalized_background.xml" value="0.1185" />
+        <entry key="..\:/Documents/Android Studio/ProyectoProduccion/app/src/main/res/layout/activity_image_class.xml" value="0.1" />
+        <entry key="..\:/Documents/Android Studio/ProyectoProduccion/app/src/main/res/layout/fragment_detector.xml" value="0.1" />
         <entry key="..\:/Documents/Android Studio/ProyectoProduccion/app/src/main/res/layout/fragment_home.xml" value="0.1" />
         <entry key="..\:/Documents/Android Studio/ProyectoServicioSocial22B/app/src/main/res/drawable/ic_camera.xml" value="0.115" />
         <entry key="..\:/Documents/Android Studio/ProyectoServicioSocial22B/app/src/main/res/drawable/ic_home.xml" value="0.115" />

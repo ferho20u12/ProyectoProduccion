@@ -1,15 +1,12 @@
 package com.example.proyectoserviciosocial22b;
-
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
+import android.view.SurfaceView;
 import android.view.View;
-import android.widget.Toast;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -26,49 +23,48 @@ import org.opencv.imgproc.Imgproc;
 import java.util.ArrayList;
 import java.util.List;
 
-import classes.Circle;
+import classes.*;
 
 
 public class CameraOpencvActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2{
     private Intent intent;
     private Mat mRgba,mRgba2,mGray;
-    private  int heightScreen,widthScreen,side,cantCirculos;
-    private List<Circle> circulos;
-    private Toast toast;
+    private  int heightScreen,widthScreen,side;
+    private List<Circle> circles;
+    private Message message;
+    private Medidor medidor;
     CameraBridgeViewBase cameraBridgeViewBase;
     BaseLoaderCallback baseLoaderCallback;
     Mat hierarchy;
     //----------------
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camara_opencv);
         intent = new Intent(CameraOpencvActivity.this, ImageClassActivity.class);
+        ActivityCompat.requestPermissions(CameraOpencvActivity.this, new String[]{Manifest.permission.CAMERA}, 1);
         cameraBridgeViewBase = findViewById(R.id.CameraView);
-        cameraBridgeViewBase.setVisibility(View.VISIBLE);
+        cameraBridgeViewBase.setVisibility(SurfaceView.VISIBLE);
         cameraBridgeViewBase.setCvCameraViewListener(this);
-        toast = Toast.makeText(this, "", Toast.LENGTH_SHORT);
-        circulos = new ArrayList<>();
-        if(checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.CAMERA}, 100);
-        }else{
-            Bundle parametros = this.getIntent().getExtras();
-            if(parametros !=null){
-                cantCirculos = parametros.getInt("cantCirculos");
-                baseLoaderCallback = new BaseLoaderCallback(this){
-                    @Override
-                    public void onManagerConnected(int status) {
+        message = new Message(this);
+        circles = new ArrayList<>();
+
+        Bundle parametros = this.getIntent().getExtras();
+        if(parametros !=null){
+            medidor = (Medidor) getIntent().getSerializableExtra("Medidor");
+            baseLoaderCallback = new BaseLoaderCallback(this){
+                @Override
+                public void onManagerConnected(int status) {
+                    super.onManagerConnected(status);
+                    if (status == BaseLoaderCallback.SUCCESS) {
+                        cameraBridgeViewBase.enableView();
+                    } else {
                         super.onManagerConnected(status);
-                        if (status == BaseLoaderCallback.SUCCESS) {
-                            cameraBridgeViewBase.enableView();
-                        } else {
-                            super.onManagerConnected(status);
-                        }
                     }
-                };
-            }
+                }
+            };
         }
+
     }
 
     @Override
@@ -95,8 +91,8 @@ public class CameraOpencvActivity extends AppCompatActivity implements CameraBri
         heightScreen= mRgba.height();
         widthScreen = mRgba.width();
         side = (heightScreen/5)-1;
-        Imgproc.rectangle(mRgba,new Point(0,(double) heightScreen/4.0),new Point(widthScreen,(double) (heightScreen/4.0+side)+20.0),new Scalar(0,255,0,1),3);
-        Imgproc.line(mRgba,new Point(1,(double) (heightScreen/4.0)+(side/2.0)),new Point(widthScreen-2.0,(double) (heightScreen/4)+(side/2.0)),new Scalar(255,0,0),1);
+        Imgproc.rectangle(mRgba,new Point(0,(double) heightScreen/4.0),new Point(widthScreen, heightScreen / 4.0 + side + 20.0),new Scalar(0,255,0,1),3);
+        Imgproc.line(mRgba,new Point(1, (heightScreen/4.0) +(side/2.0)),new Point(widthScreen-2.0,(double) (heightScreen/4)+(side/2.0)),new Scalar(255,0,0),1);
         return mRgba;
     }
     @Override
@@ -162,8 +158,8 @@ public class CameraOpencvActivity extends AppCompatActivity implements CameraBri
                 Point center = new Point((int) circleVec[0], (int) circleVec[1]);
                 int radius = (int) circleVec[2];
                 //Imgproc.circle(input, center, radius, new Scalar(255, 255, 255), 2);
-                Circle circulo = new Circle(center,radius);
-                circulos.add(circulo);
+                Circle circle = new Circle(center,radius);
+                this.circles.add(circle);
             }
         }
     }
@@ -171,40 +167,40 @@ public class CameraOpencvActivity extends AppCompatActivity implements CameraBri
         Circle AUX;
         int j;
         int bandera=1;
-        for(int i = 0;i<(circulos.size()-1)&&bandera==1;i++)
+        for(int i = 0; i<(circles.size()-1)&&bandera==1; i++)
         {
             bandera=0;
-            for(j=0;j<circulos.size()-i-1;j++)
+            for(j=0; j< circles.size()-i-1; j++)
             {
-                if(circulos.get(j).getCenter().x>circulos.get(j+1).getCenter().x)
+                if(circles.get(j).getCenter().x> circles.get(j+1).getCenter().x)
                 {
                     bandera=1;
-                    AUX= new Circle(circulos.get(j).getCenter(),circulos.get(j).getRadius());
-                    circulos.set(j,circulos.get(j+1));
-                    circulos.set(j+1,AUX);
+                    AUX= new Circle(circles.get(j).getCenter(), circles.get(j).getRadius());
+                    circles.set(j, circles.get(j+1));
+                    circles.set(j+1,AUX);
                 }
             }
         }
     }
     public void CallWindowImageDetection(View view) {
         Mat image_outputCrop;
-        circulos.clear();
+        circles.clear();
         image_outputCrop = RecortarRectangulo(mGray,new Point(0,(double) heightScreen/4),new Point(widthScreen,(double) (heightScreen/4+side)+20));
         DeteccionDeCiculos(image_outputCrop);
-        if(circulos.size() == cantCirculos ){
+        if(circles.size() == medidor.getCantCirculos() ){
             BurbujaMejorada();
             List<Mat>mats =new ArrayList<>();
-            for(Circle circulo:circulos){
+            for(Circle circle : circles){
                 double x,y;
                 int radius;
-                radius = circulo.getRadius();
-                x= circulo.getCenter().x-radius;
-                y= circulo.getCenter().y-radius;
+                radius = circle.getRadius();
+                x= circle.getCenter().x-radius;
+                y= circle.getCenter().y-radius;
                 Mat mat = RecortarRectangulo(image_outputCrop,new Point(x,y),new Point(x+(radius*2),y+(radius*2)));
                 mats.add(mat);
             }
             intent.putExtra( "image_outputCrop",image_outputCrop.nativeObj);
-            intent.putExtra("cantCirculos",cantCirculos);
+            intent.putExtra("Medidor",medidor);
             if(!mats.isEmpty()){
                 for(int i = 0; i<mats.size();i++){
                     intent.putExtra( "image_output"+i,mats.get(i).nativeObj);
@@ -213,12 +209,7 @@ public class CameraOpencvActivity extends AppCompatActivity implements CameraBri
             startActivity(intent);
         }
         else{
-            ShowNewMessage("No se detectaron todos los circulos, vuelva intentarlo "+circulos.size());          toast.show();
+            message.ShowNewMessage("No se detectaron todos los circles, vuelva intentarlo "+ circles.size());
         }
-    }
-    private void ShowNewMessage(String str){
-        toast.cancel();
-        toast = Toast.makeText(this,str,Toast.LENGTH_SHORT);
-        toast.show();
     }
 }

@@ -3,36 +3,30 @@ package com.example.proyectoserviciosocial22b;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 
 import androidx.fragment.app.Fragment;
 
-import org.imaginativeworld.whynotimagecarousel.ImageCarousel;
-import org.imaginativeworld.whynotimagecarousel.model.CarouselItem;
-
-import java.util.ArrayList;
 import java.util.List;
-//propias
-import classes.*;
+
+import classes.LocalFile;
+import classes.Medidor;
+import classes.Message;
 
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link DetectorFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
+@SuppressWarnings("ALL")
 public class DetectorFragment extends Fragment {
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-    private String mParam1;
-    private String mParam2;
-
-    private ImageCarousel carousel;
-    private List<CarouselItem> list;
-    private List<Integer>cantCirculos;
-    private Message message;
     private Context context;
 
     public DetectorFragment() {
@@ -52,70 +46,67 @@ public class DetectorFragment extends Fragment {
         super.onResume();
 
     }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         context = getActivity();
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            String mParam1 = getArguments().getString(ARG_PARAM1);
+            String mParam2 = getArguments().getString(ARG_PARAM2);
         }
 
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_detector, container, false);
-        carousel = (ImageCarousel)view.findViewById(R.id.carousel);
-        Button button = (Button) view.findViewById(R.id.button);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        //------------------------------------------------------
-        message = new Message(context);
-        carousel.registerLifecycle(getLifecycle());
-        list = new ArrayList<>();
-        cantCirculos = new ArrayList<>();
-        //------------------------------------------------------
-        CargarSlider();
-        //------------------------------------------------------
+        View view = inflater.inflate(R.layout.fragment_detector, container, false);
+        Button button = (Button) view.findViewById(R.id.button);
+        ImageView btnNext = (ImageView) view.findViewById(R.id.btn_next);
+        ImageView btnPrevius = (ImageView) view.findViewById(R.id.btn_previous);
+
+        Message message = new Message(context);
+        int indexFlapper = 0;
+        LocalFile localFile = new LocalFile(Environment.getExternalStorageDirectory(),"/");
+        List<Medidor>medidores = localFile.loadMedidores();
+
+        
+
         button.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
-                Intent intent = new Intent(context, CameraOpencvActivity.class);
-                intent.putExtra("cantCirculos", cantCirculos.get(carousel.getCurrentPosition()));
-                startActivity(intent);
+                if(medidores == null)
+                {
+                    message.ShowNewMessage("No se a descargado ningun medidor");
+                }else {
+                    Intent intent = new Intent(context, CameraOpencvActivity.class);
+                    intent.putExtra("Medidor",medidores.get(indexFlapper));
+                    startActivity(intent);
+                }
+            }
+        });
+        btnNext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(medidores != null)
+                {
+                    message.ShowNewMessage("lista con datos");
+                }
+                message.ShowNewMessage("next");
+            }
+        });
+        btnPrevius.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(medidores != null)
+                {
+                    message.ShowNewMessage("lista con datos");
+                }
+                message.ShowNewMessage("Previous");
             }
         });
         return view;
-    }
-    private void CargarSlider(){
-        //Lista donde se guardaran las cantidades de circulos que tiene cada tipo de medidor
-        cantCirculos.add(5);//Medidor 1 -Westinghouse
-        cantCirculos.add(4);
-        cantCirculos.add(3);
-        //------------------------ Aqui se carga el slider con las imagenes
-        list.add(
-                new CarouselItem(
-                        R.drawable.westinghouse_d4s,
-                        "Westinghouse"
-                )
-        );
-        list.add(
-                new CarouselItem(
-                        "",
-                        "prueba 4 circulos"
-                )
-        );
-        list.add(
-                new CarouselItem(
-                        "",
-                        "prueba 3 circulos"
-                )
-        );
-        carousel.setData(list);
-
     }
 }
